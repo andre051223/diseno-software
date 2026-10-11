@@ -1,0 +1,345 @@
+// Esquema de datos del sistema de gestión de citas médicas
+// del Hospital Central San Rafael.
+// Todas las fechas se guardan en UTC; la interfaz las presenta en America/Bogota.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------------------------------------------------------------------------
+// Enumeraciones
+// ---------------------------------------------------------------------------
+
+enum Rol {
+  paciente
+  recepcionista
+  agente_telefonico
+  medico
+  coordinador_agenda
+  director_medico
+  administrador
+}
+
+enum TipoDocumento {
+  CC // Cédula de ciudadanía
+  TI // Tarjeta de identidad
+  CE // Cédula de extranjería
+  RC // Registro civil
+  PA // Pasaporte
+}
+
+enum EstadoEspacio {
+  libre
+  reservado_temporal
+  ocupado
+  bloqueado
+}
+
+enum EstadoCita {
+  agendada
+  confirmada
+  pendiente_validacion
+  en_sala
+  atendida
+  cancelada
+  inasistencia
+}
+
+enum CanalOrigen {
+  ventanilla
+  telefono
+  portal_web
+  aplicacion_movil
+}
+
+enum TipoNovedad {
+  vacaciones
+  incapacidad
+  capacitacion
+}
+
+enum ResultadoCobertura {
+  cubierta
+  sin_vigencia
+  sin_cobertura
+  sin_respuesta
+}
+
+enum CanalNotificacion {
+  correo
+  sms
+}
+
+enum EstadoNotificacion {
+  pendiente
+  enviada
+}
+
+// ---------------------------------------------------------------------------
+// Autenticación y control de acceso
+// ---------------------------------------------------------------------------
+
+model Usuario {
+  id               Int       @id @default(autoincrement())
+  correo           String    @unique
+  hashContrasena   String
+  nombre           String
+  rol              Rol
+  intentosFallidos Int       @default(0)
+  bloqueadoHasta   DateTime?
+  activo           Boolean   @default(true)
+  creadoEn         DateTime  @default(now())
+  actualizadoEn    DateTime  @updatedAt
+
+  paciente           Paciente?
+  medico             Medico?
+  tokensRecuperacion TokenRecuperacion[]
+  registrosBitacora  Bitacora[]
+  citasCreadas       Cita[]              @relation("CitaCreadaPor")
+  espaciosReservados Espacio[]           @relation("EspacioReservadoPor")
+  novedadesCreadas   Novedad[]
+  notificaciones     Notificacion[]
+}
+
+model TokenRecuperacion {
+  id        Int       @id @default(autoincrement())
+  usuarioId Int
+  tokenHash String    @unique
+  expiraEn  DateTime
+  usadoEn   DateTime?
+  creadoEn  DateTime  @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+}
+
+// ---------------------------------------------------------------------------
+// Pacientes y catálogos
+// ---------------------------------------------------------------------------
+
+model Aseguradora {
+  id        Int      @id @default(autoincrement())
+  codigo    String   @unique
+  nombre    String   @unique
+  activo    Boolean  @default(true)
+  pacientes Paciente[]
+}
+
+model Paciente {
+  id              Int           @id @default(autoincrement())
+  tipoDocumento   TipoDocumento
+  numeroDocumento String
+  nombres         String
+  apellidos       String
+  fechaNacimiento DateTime
+  telefono        String
+  correo          String
+  aseguradoraId   Int
+  usuarioId       Int?          @unique
+  creadoEn        DateTime      @default(now())
+  actualizadoEn   DateTime      @updatedAt
+
+  aseguradora    Aseguradora    @relation(fields: [aseguradoraId], references: [id])
+  usuario        Usuario?       @relation(fields: [usuarioId], references: [id])
+  citas          Cita[]
+  notificaciones Notificacion[]
+
+  // RF-06: no se admite un tipo y número de documento repetido.
+  @@unique([tipoDocumento, numeroDocumento])
+  @@index([apellidos, nombres])
+}
+
+model Especialidad {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique
+  descripcion String?
+  activo      Boolean  @default(true)
+  medicos     Medico[]
+  citas       Cita[]
+}
+
+model Consultorio {
+  id              Int                     @id @default(autoincrement())
+  nombre          String                  @unique
+  ubicacion       String
+  activo          Boolean                 @default(true)
+  disponibilidades DisponibilidadSemanal[]
+  espacios        Espacio[]
+}
+
+// ---------------------------------------------------------------------------
+// Médicos, horarios y espacios
+// ---------------------------------------------------------------------------
+
+model Medico {
+  id             Int      @id @default(autoincrement())
+  nombres        String
+  apellidos      String
+  registroMedico String   @unique
+  correo         String?
+  telefono       String?
+  activo         Boolean  @default(true)
+  usuarioId      Int?     @unique
+  creadoEn       DateTime @default(now())
+
+  usuario          Usuario?                @relation(fields: [usuarioId], references: [id])
+  especialidades   Especialidad[]
+  disponibilidades DisponibilidadSemanal[]
+  novedades        Novedad[]
+  espacios         Espacio[]
+}
+
+model DisponibilidadSemanal {
+  id              Int      @id @default(autoincrement())
+  medicoId        Int
+  consultorioId   Int
+  // 1 = lunes … 7 = domingo (ISO 8601).
+  diaSemana       Int
+  // Formato HH:mm en hora de Bogotá.
+  horaInicio      String
+  horaFin         String
+  duracionMinutos Int
+  activo          Boolean  @default(true)
+  creadoEn        DateTime @default(now())
+
+  medico      Medico      @relation(fields: [medicoId], references: [id])
+  consultorio Consultorio @relation(fields: [consultorioId], references: [id])
+  espacios    Espacio[]
+
+  @@index([medicoId])
+  @@index([consultorioId, diaSemana])
+}
+
+model Novedad {
+  id          Int         @id @default(autoincrement())
+  medicoId    Int
+  tipo        TipoNovedad
+  inicio      DateTime
+  fin         DateTime
+  motivo      String?
+  creadaPorId Int?
+  creadoEn    DateTime    @default(now())
+
+  medico    Medico    @relation(fields: [medicoId], references: [id])
+  creadaPor Usuario?  @relation(fields: [creadaPorId], references: [id])
+  espacios  Espacio[]
+
+  @@index([medicoId, inicio])
+}
+
+model Espacio {
+  id               Int           @id @default(autoincrement())
+  medicoId         Int
+  consultorioId    Int
+  disponibilidadId Int?
+  novedadId        Int?
+  inicio           DateTime
+  fin              DateTime
+  estado           EstadoEspacio @default(libre)
+  // RF-14: reserva temporal mientras se completa el agendamiento.
+  reservadoHasta   DateTime?
+  reservadoPorId   Int?
+
+  medico         Medico                 @relation(fields: [medicoId], references: [id])
+  consultorio    Consultorio            @relation(fields: [consultorioId], references: [id])
+  disponibilidad DisponibilidadSemanal? @relation(fields: [disponibilidadId], references: [id])
+  novedad        Novedad?               @relation(fields: [novedadId], references: [id])
+  reservadoPor   Usuario?               @relation("EspacioReservadoPor", fields: [reservadoPorId], references: [id])
+  citas          Cita[]
+
+  // RF-13: un médico y un consultorio no pueden tener dos espacios con el mismo inicio.
+  @@unique([medicoId, inicio])
+  @@unique([consultorioId, inicio])
+  @@index([estado, inicio])
+}
+
+// ---------------------------------------------------------------------------
+// Citas, notificaciones y bitácora
+// ---------------------------------------------------------------------------
+
+model Cita {
+  id                 Int                 @id @default(autoincrement())
+  // RF-15: código único legible, por ejemplo HSR-7K3QX2.
+  codigo             String              @unique
+  pacienteId         Int
+  espacioId          Int
+  // RF-13: se llena mientras la cita ocupa el espacio y queda en NULL al cancelar
+  // o reprogramar. El índice único impide dos citas vigentes en el mismo espacio.
+  espacioActivoId    Int?                @unique
+  especialidadId     Int
+  estado             EstadoCita          @default(agendada)
+  // RF-19: canal de origen y usuario que creó la cita.
+  canal              CanalOrigen
+  creadaPorId        Int
+  motivoCancelacion  String?
+  fechaSolicitud     DateTime            @default(now())
+  horaLlegada        DateTime?
+  inicioAtencion     DateTime?
+  finAtencion        DateTime?
+  // RF-21 a RF-23: resultado de la validación con la aseguradora.
+  resultadoCobertura ResultadoCobertura?
+  detalleCobertura   String?
+  esParticular       Boolean             @default(false)
+  intentosCobertura  Int                 @default(0)
+  // RF-25: token para responder el recordatorio sin iniciar sesión.
+  tokenRespuesta     String              @unique
+  recordatorioEnviadoEn DateTime?
+  creadoEn           DateTime            @default(now())
+  actualizadoEn      DateTime            @updatedAt
+
+  paciente       Paciente       @relation(fields: [pacienteId], references: [id])
+  espacio        Espacio        @relation(fields: [espacioId], references: [id])
+  especialidad   Especialidad   @relation(fields: [especialidadId], references: [id])
+  creadaPor      Usuario        @relation("CitaCreadaPor", fields: [creadaPorId], references: [id])
+  notificaciones Notificacion[]
+
+  @@index([pacienteId, especialidadId, estado])
+  @@index([estado])
+  @@index([espacioId])
+}
+
+model Notificacion {
+  id              Int                @id @default(autoincrement())
+  pacienteId      Int?
+  citaId          Int?
+  // Para avisos a cuentas internas (por ejemplo, RF-03).
+  usuarioId       Int?
+  destinatario    String
+  canal           CanalNotificacion
+  tipo            String
+  asunto          String?
+  contenido       String
+  fechaProgramada DateTime           @default(now())
+  fechaEnvio      DateTime?
+  estado          EstadoNotificacion @default(pendiente)
+
+  paciente Paciente? @relation(fields: [pacienteId], references: [id])
+  cita     Cita?     @relation(fields: [citaId], references: [id])
+  usuario  Usuario?  @relation(fields: [usuarioId], references: [id])
+
+  @@index([estado, fechaProgramada])
+  @@index([citaId])
+}
+
+model Bitacora {
+  id             Int      @id @default(autoincrement())
+  usuarioId      Int?
+  entidad        String
+  entidadId      String?
+  accion         String
+  // Estados serializados en JSON.
+  estadoAnterior String?
+  estadoNuevo    String?
+  fecha          DateTime @default(now())
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@index([entidad, entidadId])
+  @@index([fecha])
+}

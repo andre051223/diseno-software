@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/*
+ * Paleta del Hospital Central San Rafael: azul petróleo y blanco, con un acento
+ * naranja oscuro para las acciones principales. Todas las combinaciones de texto
+ * usadas cumplen al menos el contraste AA.
+ */
+@theme {
+  --color-petroleo-50: #eef6f7;
+  --color-petroleo-100: #d4e9ec;
+  --color-petroleo-200: #a9d2d9;
+  --color-petroleo-300: #74b2bd;
+  --color-petroleo-400: #3f8e9c;
+  --color-petroleo-500: #1f7282;
+  --color-petroleo-600: #145f6e;
+  --color-petroleo-700: #0f4f5c;
+  --color-petroleo-800: #0b3f4a;
+  --color-petroleo-900: #082f37;
+
+  --color-acento-50: #fff4ed;
+  --color-acento-100: #ffe4d1;
+  --color-acento-600: #c2410c;
+  --color-acento-700: #9a3412;
+  --color-acento-800: #7c2d12;
+
+  --font-sans:
+    "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, "Noto Sans",
+    sans-serif;
+}
+
+@layer base {
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-slate-50 font-sans text-slate-900 antialiased;
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    @apply outline-3 outline-offset-2 outline-acento-600;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply text-petroleo-900;
+    text-wrap: balance;
+  }
+}
+
+/* Comprobantes y reportes imprimibles: se oculta la navegación al imprimir. */
+@media print {
+  .no-imprimir {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+}
