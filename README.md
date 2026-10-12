@@ -4,7 +4,7 @@
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-estricto-3178C6?logo=typescript&logoColor=white)
 ![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma)
-![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql)
 ![Requisitos](https://img.shields.io/badge/requisitos-35%2F35-2E7D32)
 ![WCAG](https://img.shields.io/badge/WCAG_2.1-AA-1565C0)
 
@@ -80,7 +80,7 @@ flowchart TD
     UI --> A["acciones/<br/>Server Actions: Zod + rol"]
     UI --> S
     A --> S["servicios/<br/>reglas de negocio"]
-    S --> DB[("Prisma 7<br/>SQLite")]
+    S --> DB[("Prisma 7<br/>PostgreSQL (Neon)")]
     S --> AS["api/aseguradora<br/>aseguradora simulada"]
     C["Cron externo"] --> T["api/tareas<br/>protegida con token"]
     T --> S
@@ -101,7 +101,7 @@ flowchart TD
 |---|---|
 | Aplicación | Next.js 16 (App Router, Server Components y Server Actions), React 19, TypeScript estricto |
 | Estilos | Tailwind CSS 4, con componentes propios en `src/components/ui` |
-| Datos | Prisma 7 con SQLite (`prisma/dev.db`) |
+| Datos | Prisma 7 con PostgreSQL alojado en Neon (`@prisma/adapter-pg`) |
 | Validación | Zod 4, con mensajes en español |
 | Autenticación | Contraseñas cifradas con `bcryptjs`, sesión en cookie `httpOnly` firmada con `jose`, protección por rol en `src/proxy.ts` |
 | Fechas | `date-fns` y `@date-fns/tz` con la zona horaria `America/Bogota` |
@@ -114,13 +114,14 @@ flowchart TD
 
 - Node.js 20.19 o superior (probado con Node.js 24)
 - npm
+- Una base de datos PostgreSQL (el proyecto usa Neon, conectado desde Vercel Marketplace)
 
 ### Instalación
 
 ```bash
 npm install                 # instala dependencias y genera el cliente de Prisma
-cp .env.example .env        # opcional: sin .env se usan valores de desarrollo
-npx prisma migrate dev      # crea prisma/dev.db con el esquema
+cp .env.example .env        # complete DATABASE_URL (o use `vercel env pull .env`)
+npx prisma migrate deploy   # crea las tablas en la base PostgreSQL
 npx prisma db seed          # carga los datos de prueba
 npm run dev                 # http://localhost:3000
 ```
@@ -140,6 +141,14 @@ Para dejar la base como recién instalada: `npm run db:reset`.
 | `npm run test:watch` | Vitest en modo observación. |
 | `npm run test:e2e` | Pruebas extremo a extremo y de accesibilidad con Playwright. |
 | `npm run db:reset` | Recrea la base de datos y vuelve a cargar la semilla. |
+| `npm run vercel-build` | Lo ejecuta Vercel en cada despliegue: aplica las migraciones pendientes y compila. |
+
+### Despliegue en Vercel
+
+1. En el proyecto de Vercel, pestaña **Storage**, cree una base **Neon** y conéctela a los entornos Production y Preview. Esto define `DATABASE_URL` y `DATABASE_URL_UNPOOLED`.
+2. En **Settings → Environment Variables** defina `SESSION_SECRET`, `TAREAS_TOKEN` y `APP_URL` (la dirección pública del despliegue).
+3. Vuelva a desplegar. `vercel-build` crea las tablas con `prisma migrate deploy`.
+4. Cargue los datos de demostración una sola vez desde su equipo: `vercel env pull .env` y luego `npx prisma db seed`.
 
 ## Configuración
 
@@ -149,7 +158,9 @@ Se definen en `.env` (ver `.env.example`).
 
 | Variable | Descripción | Valor por defecto |
 |---|---|---|
-| `DATABASE_URL` | Archivo SQLite. | `file:./prisma/dev.db` |
+| `DATABASE_URL` | Cadena de conexión de PostgreSQL (Neon, con pooler). **Obligatoria.** | Sin valor |
+| `DATABASE_URL_UNPOOLED` | Conexión directa de Neon; la usan las migraciones y la semilla. La integración de Neon en Vercel la crea sola. | `DATABASE_URL` |
+| `DATABASE_URL_PRUEBAS` | Base PostgreSQL exclusiva de las pruebas; se borra en cada ejecución. Debe ser distinta de `DATABASE_URL`. | Sin valor |
 | `SESSION_SECRET` | Secreto para firmar la cookie de sesión (al menos 32 caracteres). **Obligatorio en producción.** | Valor de desarrollo (fuera de producción) |
 | `TAREAS_TOKEN` | Token que exige la ruta `/api/tareas`. Si no se define, la ruta rechaza todas las llamadas (el botón de `/tareas` sigue funcionando). | Sin valor |
 | `APP_URL` | Dirección pública de la aplicación; se usa en los enlaces de los mensajes simulados. | `http://localhost:3000` |
@@ -244,8 +255,8 @@ curl -X POST http://localhost:3000/api/tareas -H "Authorization: Bearer <TAREAS_
 ```bash
 npm run lint
 npm run typecheck
-npm test            # Vitest, con una base propia: prisma/test.db
-npm run test:e2e    # Playwright; recrea prisma/e2e.db, compila y levanta el servidor en el puerto 3200
+npm test            # Vitest, con la base de DATABASE_URL_PRUEBAS (se recrea)
+npm run test:e2e    # Playwright; recrea la base de pruebas, compila y levanta el servidor en el puerto 3200
 ```
 
 La primera vez que se ejecuten las pruebas de Playwright hay que instalar el navegador: `npx playwright install chromium`.
@@ -261,7 +272,7 @@ La primera vez que se ejecuten las pruebas de Playwright hay que instalar el nav
 ```text
 prisma/
   schema.prisma              Modelo de datos (índices únicos de RF-06 y RF-13)
-  migrations/                Migraciones de SQLite
+  migrations/                Migraciones de PostgreSQL
   seed.ts                    Datos de prueba
 src/
   proxy.ts                   Protección de rutas por rol (antes middleware.ts)
@@ -275,8 +286,8 @@ src/
     api/aseguradora/         Aseguradora simulada
     api/tareas/              Tareas programadas protegidas con token
 tests/
-  unit/                      Pruebas de Vitest (base prisma/test.db)
-  e2e/                       Pruebas de Playwright (base prisma/e2e.db)
+  unit/                      Pruebas de Vitest (base DATABASE_URL_PRUEBAS)
+  e2e/                       Pruebas de Playwright (base DATABASE_URL_PRUEBAS)
 ```
 
 ## Decisiones de diseño

@@ -1,5 +1,6 @@
 import path from "node:path";
 import { defineConfig } from "vitest/config";
+import { envPruebas } from "./tests/base-pruebas.mjs";
 
 const raiz = import.meta.dirname;
 
@@ -14,10 +15,10 @@ export default defineConfig({
   test: {
     include: ["tests/unit/**/*.test.ts"],
     environment: "node",
-    // Las pruebas usan una base SQLite propia, distinta de la de desarrollo.
-    env: { DATABASE_URL: "file:./prisma/test.db", TZ: "UTC" },
+    // Las pruebas usan una base PostgreSQL propia, distinta de la de desarrollo.
+    env: { ...envPruebas, TZ: "UTC" },
     globalSetup: ["tests/unit/preparar-base.ts"],
-    // SQLite admite un solo escritor: los archivos de prueba se ejecutan en serie.
+    // Los archivos de prueba comparten la base: se ejecutan en serie.
     fileParallelism: false,
     testTimeout: 20_000,
     hookTimeout: 60_000,

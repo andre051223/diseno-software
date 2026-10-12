@@ -1,10 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import { envPruebas } from "./tests/base-pruebas.mjs";
 
 const PUERTO = 3200;
 const URL_BASE = `http://localhost:${PUERTO}`;
 
 /**
- * Pruebas de extremo a extremo. Usan una base propia (prisma/e2e.db) que se
+ * Pruebas de extremo a extremo. Usan la base de pruebas (DATABASE_URL_PRUEBAS), que se
  * recrea y se llena con la semilla antes de levantar el servidor de producción.
  */
 export default defineConfig({
@@ -30,7 +31,7 @@ export default defineConfig({
     timeout: 300_000,
     reuseExistingServer: false,
     env: {
-      DATABASE_URL: "file:./prisma/e2e.db",
+      ...envPruebas,
       APP_URL: URL_BASE,
       TAREAS_TOKEN: "token-pruebas-e2e",
     },

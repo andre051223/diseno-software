@@ -1,13 +1,10 @@
 import { execSync } from "node:child_process";
-import { rmSync } from "node:fs";
+import { envPruebas } from "../base-pruebas.mjs";
 
 /** Crea desde cero la base de pruebas aplicando las migraciones. */
 export default function prepararBase() {
-  for (const archivo of ["prisma/test.db", "prisma/test.db-journal"]) {
-    rmSync(archivo, { force: true });
-  }
-  execSync("npx prisma migrate deploy", {
+  execSync("npx prisma migrate reset --force", {
     stdio: "ignore",
-    env: { ...process.env, DATABASE_URL: "file:./prisma/test.db" },
+    env: { ...process.env, ...envPruebas },
   });
 }

@@ -29,7 +29,7 @@ export default async function PaginaBitacora({ searchParams }: PageProps<"/bitac
   const entidad = typeof parametros.entidad === "string" ? parametros.entidad.trim() : "";
   const pagina = leerPagina(parametros.pagina);
 
-  const filtro = entidad ? { entidad: { contains: entidad } } : {};
+  const filtro = entidad ? { entidad: { contains: entidad, mode: "insensitive" as const } } : {};
   const [total, registros] = await Promise.all([
     db.bitacora.count({ where: filtro }),
     db.bitacora.findMany({

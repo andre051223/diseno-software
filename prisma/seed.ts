@@ -10,7 +10,7 @@
  */
 import "dotenv/config";
 import bcrypt from "bcryptjs";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Prisma } from "../src/generated/prisma/client";
 import type {
   CanalOrigen,
@@ -24,7 +24,7 @@ import { configuracion } from "../src/lib/configuracion";
 import { aFechaIso, crearFechaBogota, diaSemanaIso } from "../src/lib/fechas";
 import { calcularEspacios, sumarDiasIso } from "../src/servicios/generador-espacios";
 
-const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL ?? "file:./prisma/dev.db" });
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL });
 const db = new PrismaClient({ adapter });
 
 /** Contraseña de todas las cuentas de prueba (documentada en el README). */
@@ -161,21 +161,12 @@ async function enLotes<T>(elementos: T[], tamano: number, accion: (lote: T[]) =>
 }
 
 async function limpiar() {
-  await db.notificacion.deleteMany();
-  await db.bitacora.deleteMany();
-  await db.cita.deleteMany();
-  await db.espacio.deleteMany();
-  await db.novedad.deleteMany();
-  await db.disponibilidadSemanal.deleteMany();
-  await db.tokenRecuperacion.deleteMany();
-  await db.medico.deleteMany();
-  await db.paciente.deleteMany();
-  await db.usuario.deleteMany();
-  await db.consultorio.deleteMany();
-  await db.especialidad.deleteMany();
-  await db.aseguradora.deleteMany();
-  // Reinicia los contadores de identificadores para que los datos sean predecibles.
-  await db.$executeRawUnsafe("DELETE FROM sqlite_sequence");
+  // Borra todos los datos y reinicia los contadores de identificadores para que los datos sean predecibles.
+  await db.$executeRawUnsafe(
+    `TRUNCATE TABLE "Notificacion", "Bitacora", "Cita", "Espacio", "Novedad", "DisponibilidadSemanal",
+      "TokenRecuperacion", "_EspecialidadToMedico", "Medico", "Paciente", "Usuario", "Consultorio",
+      "Especialidad", "Aseguradora" RESTART IDENTITY CASCADE`,
+  );
 }
 
 async function main() {

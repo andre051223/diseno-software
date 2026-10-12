@@ -30,7 +30,7 @@ export default async function PaginaUsuarios({ searchParams }: PageProps<"/usuar
     where: {
       ...(rol ? { rol } : {}),
       ...(busqueda
-        ? { OR: [{ nombre: { contains: busqueda } }, { correo: { contains: busqueda.toLowerCase() } }] }
+        ? { OR: [{ nombre: { contains: busqueda, mode: "insensitive" } }, { correo: { contains: busqueda.toLowerCase() } }] }
         : {}),
     },
     orderBy: [{ rol: "asc" }, { nombre: "asc" }],

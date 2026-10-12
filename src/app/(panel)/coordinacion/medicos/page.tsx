@@ -31,8 +31,8 @@ export default async function PaginaMedicos({ searchParams }: PageProps<"/coordi
         ...(busqueda
           ? {
               OR: [
-                { nombres: { contains: busqueda } },
-                { apellidos: { contains: busqueda } },
+                { nombres: { contains: busqueda, mode: "insensitive" } },
+                { apellidos: { contains: busqueda, mode: "insensitive" } },
                 { registroMedico: { contains: busqueda.toUpperCase() } },
               ],
             }

@@ -227,7 +227,7 @@ export function filtroBusquedaPacientes(texto: string): Prisma.PacienteWhereInpu
     OR: [
       { numeroDocumento: { contains: texto.replace(/[.\s]/g, "").toUpperCase() } },
       // Cada palabra debe aparecer en los nombres o en los apellidos.
-      { AND: palabras.map((palabra) => ({ OR: [{ nombres: { contains: palabra } }, { apellidos: { contains: palabra } }] })) },
+      { AND: palabras.map((palabra) => ({ OR: [{ nombres: { contains: palabra, mode: "insensitive" } }, { apellidos: { contains: palabra, mode: "insensitive" } }] })) },
     ],
   };
 }

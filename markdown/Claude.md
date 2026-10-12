@@ -22,7 +22,7 @@ El hospital atiende cerca de 600 citas diarias en 12 especialidades con unos 80 
 
 - **Next.js** con App Router, TypeScript en modo estricto y Server Actions para las mutaciones.
 - **Tailwind CSS** para todos los estilos. Sin librerías de componentes pesadas; puedes crear componentes propios en `src/components/ui`.
-- **Prisma** con **SQLite** como base de datos local (archivo `prisma/dev.db`), para que el proyecto corra sin servicios externos.
+- **Prisma** con **PostgreSQL** alojado en **Neon** (integración de Vercel); SQLite en archivo no sirve en Vercel porque el sistema de archivos de las funciones es de solo lectura y efímero.
 - **Zod** para validar todos los formularios y entradas de Server Actions.
 - Autenticación propia con contraseñas cifradas con `bcryptjs` y sesión en cookie `httpOnly` firmada con `jose`. Protección de rutas por rol en `middleware.ts`.
 - **Recharts** para los gráficos de reportes.

@@ -8,7 +8,7 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    // Valor por defecto para que el proyecto arranque aunque falte el archivo .env.
-    url: process.env.DATABASE_URL ?? "file:./prisma/dev.db",
+    // Las migraciones usan la conexión directa de Neon (sin pooler) cuando está disponible.
+    url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL,
   },
 });
