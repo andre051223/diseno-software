@@ -1,0 +1,61 @@
+@startuml
+!include estilo.iuml
+left to right direction
+
+actor "Paciente" as PAC
+actor "Personal de\nagendamiento" as AGE
+actor "Recepcionista" as REC
+actor "Médico" as MED
+actor "Coordinador\nde agenda" as COO
+actor "Director\nmédico" as DIR
+actor "Administrador" as ADM
+
+actor "Aseguradora" as ASE <<sistema externo>>
+actor "Historia clínica\nelectrónica" as HCE <<sistema externo>>
+actor "Temporizador\ndel sistema" as TMP <<actor temporal>>
+
+rectangle "Sistema de gestión de citas médicas: Hospital Central San Rafael" {
+  usecase "Iniciar sesión\n(RF-01, RF-03, RF-04)" as UC1
+  usecase "Gestionar cuentas y roles\n(RF-02)" as UC2
+  usecase "Registrar y actualizar paciente\n(RF-05 a RF-07)" as UC3
+  usecase "Gestionar especialidades,\nconsultorios y médicos\n(RF-08, RF-09)" as UC4
+  usecase "Configurar disponibilidad\ny novedades (RF-10, RF-11)" as UC5
+  usecase "Agendar cita\n(RF-12 a RF-15, RF-18, RF-19)" as UC6
+  usecase "Reprogramar cita\n(RF-16)" as UC7
+  usecase "Cancelar cita\n(RF-17)" as UC8
+  usecase "Validar cobertura\n(RF-21 a RF-23)" as UC9
+  usecase "Notificar y recordar citas\n(RF-24 a RF-27)" as UC10
+  usecase "Registrar llegada\n(RF-28)" as UC11
+  usecase "Marcar inasistencia\n(RF-31)" as UC13
+  usecase "Atender cita\n(RF-29, RF-30)" as UC12
+  usecase "Consultar y exportar reportes\n(RF-32 a RF-35)" as UC14
+}
+
+PAC --> UC1
+PAC --> UC3
+PAC --> UC6
+PAC --> UC7
+PAC --> UC8
+AGE <|-- REC
+REC --> UC3
+AGE --> UC6
+AGE --> UC7
+AGE --> UC8
+REC --> UC11
+MED --> UC12
+COO --> UC4
+COO --> UC5
+DIR --> UC14
+ADM --> UC2
+
+UC6 ..> UC9 : <<include>>
+UC6 ..> UC10 : <<include>>
+UC7 ..> UC10 : <<include>>
+UC8 ..> UC10 : <<include>>
+
+UC9 --> ASE
+UC12 --> HCE
+UC10 <-- TMP
+UC11 -[hidden]- UC13
+UC13 <-- TMP
+@enduml

@@ -1,0 +1,20 @@
+@startuml
+!include estilo.iuml
+left to right direction
+
+actor "Coordinador\nde agenda" as COO
+
+rectangle "Gestión de la oferta de atención" {
+  usecase "CU-08 Gestionar especialidades\ny consultorios (RF-08)" as CU08
+  usecase "CU-09 Registrar médico y\nasociar especialidades (RF-09)" as CU09
+  usecase "CU-10 Configurar disponibilidad\nsemanal (RF-10)" as CU10
+  usecase "CU-11 Registrar novedad\ndel médico (RF-11)" as CU11
+}
+
+COO --> CU08
+COO --> CU09
+COO --> CU10
+COO --> CU11
+note right of CU10 : Genera los espacios de atención\nsin solaparlos en el mismo consultorio.
+note right of CU11 : Bloquea los espacios afectados y\nlista las citas ya asignadas.
+@enduml

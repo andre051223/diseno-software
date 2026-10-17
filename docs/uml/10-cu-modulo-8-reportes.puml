@@ -1,0 +1,20 @@
+@startuml
+!include estilo.iuml
+left to right direction
+
+actor "Director\nmédico" as DIR
+
+rectangle "Reportes de gestión" {
+  usecase "CU-32 Consultar ocupación\nde la agenda (RF-32)" as CU32
+  usecase "CU-33 Consultar inasistencias\ny cancelaciones (RF-33)" as CU33
+  usecase "CU-34 Consultar tiempos\nde espera (RF-34)" as CU34
+  usecase "CU-35 Exportar reporte\nen PDF u hoja de cálculo (RF-35)" as CU35
+}
+
+DIR --> CU32
+DIR --> CU33
+DIR --> CU34
+CU32 <.. CU35 : <<extend>>
+CU33 <.. CU35 : <<extend>>
+CU34 <.. CU35 : <<extend>>
+@enduml

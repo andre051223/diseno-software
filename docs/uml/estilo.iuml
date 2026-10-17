@@ -1,0 +1,23 @@
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam dpi 200
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #3F4A57
+skinparam ArrowFontSize 11
+skinparam ArrowFontColor #3F4A57
+skinparam actorBorderColor #3F4A57
+skinparam actorBackgroundColor #FFF2CC
+skinparam actorFontSize 13
+skinparam usecaseBackgroundColor #FFF2CC
+skinparam usecaseBorderColor #B7950B
+skinparam usecaseFontSize 12
+skinparam rectangleBorderColor #3F4A57
+skinparam rectangleBackgroundColor #FAFBFC
+skinparam rectangleFontSize 14
+skinparam packageBorderColor #4A9CC7
+skinparam packageBackgroundColor #F3F9FD
+skinparam noteBackgroundColor #EEF3F8
+skinparam noteBorderColor #8DA3B8
+skinparam noteFontSize 11
+skinparam stereotypeCBackgroundColor #4A9CC7

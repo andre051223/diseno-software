@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { EnlaceBoton } from "@/components/ui/boton";
 
 const pasos = [
@@ -63,6 +64,14 @@ export default function PaginaInicio() {
             registrada igual sin importar el canal que elija.
           </p>
         </div>
+
+        <p className="mt-6 text-slate-700">
+          ¿Le interesa cómo está diseñado el sistema? Consulte los diagramas de casos de uso en{" "}
+          <Link href="/diseno-uml" className="font-semibold text-petroleo-700 underline underline-offset-2 hover:text-petroleo-900">
+            Diseño UML
+          </Link>
+          .
+        </p>
       </section>
     </>
   );

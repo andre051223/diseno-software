@@ -1,0 +1,40 @@
+@startuml
+!include estilo.iuml
+top to bottom direction
+skinparam nodesep 40
+skinparam ranksep 70
+
+actor "Usuario del sistema" as USR <<abstracto>>
+actor "Paciente" as PAC
+actor "Personal del hospital" as PER <<abstracto>>
+actor "Personal de\nagendamiento" as AGE <<abstracto>>
+actor "Recepcionista" as REC
+actor "Agente telefónico" as TEL
+actor "Médico" as MED
+actor "Coordinador\nde agenda" as COO
+actor "Director médico" as DIR
+actor "Administrador\ndel sistema" as ADM
+
+USR <|-- PAC
+USR <|-- PER
+PER <|-- AGE
+PER <|-- MED
+PER <|-- COO
+PER <|-- DIR
+PER <|-- ADM
+AGE <|-- REC
+AGE <|-- TEL
+
+note right of USR
+  Todo usuario inicia sesión (RF-01).
+  El administrador asigna el rol (RF-02)
+  y cada rol ve solo sus menús.
+end note
+
+rectangle "Actores no humanos (sin cuenta ni rol)" as EXT {
+  actor "Aseguradora" as ASE <<sistema externo>>
+  actor "Historia clínica\nelectrónica" as HCE <<sistema externo>>
+  actor "Temporizador\ndel sistema" as TMP <<actor temporal>>
+}
+PAC -[hidden]down- EXT
+@enduml

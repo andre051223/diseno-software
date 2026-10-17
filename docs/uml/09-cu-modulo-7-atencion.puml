@@ -1,0 +1,22 @@
+@startuml
+!include estilo.iuml
+left to right direction
+
+actor "Recepcionista" as REC
+actor "Médico" as MED
+actor "Temporizador\ndel sistema" as TMP <<actor temporal>>
+actor "Historia clínica\nelectrónica" as HCE <<sistema externo>>
+
+rectangle "Llegada y atención" {
+  usecase "CU-28 Registrar llegada\ndel paciente (RF-28)" as CU28
+  usecase "CU-29 Consultar agenda\ndel día (RF-29)" as CU29
+  usecase "CU-30 Registrar inicio y\nfin de la atención (RF-30)" as CU30
+  usecase "CU-31 Marcar\ninasistencia (RF-31)" as CU31
+}
+
+REC --> CU28
+MED --> CU29
+MED --> CU30
+CU30 --> HCE
+TMP --> CU31
+@enduml

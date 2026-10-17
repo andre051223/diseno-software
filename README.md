@@ -17,17 +17,18 @@ Proyecto académico de la asignatura **Diseño de Software** de la Fundación Un
 1. [Alcance](#alcance)
 2. [Funcionalidades](#funcionalidades)
 3. [Arquitectura](#arquitectura)
-4. [Tecnologías](#tecnologías)
-5. [Puesta en marcha](#puesta-en-marcha)
-6. [Configuración](#configuración)
-7. [Datos de demostración](#datos-de-demostración)
-8. [Guía de demostración](#guía-de-demostración)
-9. [Tareas programadas](#tareas-programadas)
-10. [Pruebas y calidad](#pruebas-y-calidad)
-11. [Estructura del proyecto](#estructura-del-proyecto)
-12. [Decisiones de diseño](#decisiones-de-diseño)
-13. [Accesibilidad](#accesibilidad)
-14. [Trazabilidad de requisitos](#trazabilidad-de-requisitos)
+4. [Diseño UML (eje 2)](#diseño-uml-eje-2)
+5. [Tecnologías](#tecnologías)
+6. [Puesta en marcha](#puesta-en-marcha)
+7. [Configuración](#configuración)
+8. [Datos de demostración](#datos-de-demostración)
+9. [Guía de demostración](#guía-de-demostración)
+10. [Tareas programadas](#tareas-programadas)
+11. [Pruebas y calidad](#pruebas-y-calidad)
+12. [Estructura del proyecto](#estructura-del-proyecto)
+13. [Decisiones de diseño](#decisiones-de-diseño)
+14. [Accesibilidad](#accesibilidad)
+15. [Trazabilidad de requisitos](#trazabilidad-de-requisitos)
 
 ---
 
@@ -94,6 +95,26 @@ flowchart TD
 | Dominio | `src/servicios/` | Reglas de negocio y acceso a datos, cubiertas con Vitest. |
 | Soporte | `src/lib/` | Configuración, sesión, roles, fechas, etiquetas y esquemas de validación. |
 | Persistencia | `prisma/` | Esquema, migraciones y semilla. |
+
+## Diseño UML (eje 2)
+
+Los requisitos funcionales del eje 1 están modelados en diez diagramas de casos de uso. Cada caso de uso **CU-nn representa al requisito RF-nn** con el mismo número; la columna «CU» de la [trazabilidad de requisitos](#trazabilidad-de-requisitos) lo indica para cada uno.
+
+- Página pública con los diagramas y la tabla de trazabilidad a casos de uso: [`/diseno-uml`](https://diseno-software.vercel.app/diseno-uml).
+- Fuentes en PlantUML e instrucciones para regenerar los SVG: [`docs/uml/`](docs/uml/). Las imágenes se sirven desde `public/diagramas/`.
+
+| Archivo | Diagrama | Requisitos |
+|---|---|---|
+| `01-diagrama-roles` | Jerarquía de actores (roles) | RF-01 y RF-02 |
+| `02-casos-uso-sistema` | Casos de uso del sistema (14 casos de alto nivel) | RF-01 a RF-35 |
+| `03-cu-modulo-1-autenticacion` | Módulo 1. Autenticación y control de acceso | RF-01 a RF-04 |
+| `04-cu-modulo-2-pacientes` | Módulo 2. Registro de pacientes | RF-05 a RF-07 |
+| `05-cu-modulo-3-agenda` | Módulo 3. Médicos, especialidades, horarios y consultorios | RF-08 a RF-11 |
+| `06-cu-modulo-4-agendamiento` | Módulo 4. Agendamiento, reprogramación y cancelación | RF-12 a RF-20 |
+| `07-cu-modulo-5-cobertura` | Módulo 5. Validación de cobertura | RF-21 a RF-23 |
+| `08-cu-modulo-6-notificaciones` | Módulo 6. Notificaciones y recordatorios | RF-24 a RF-27 |
+| `09-cu-modulo-7-atencion` | Módulo 7. Registro de llegada y atención | RF-28 a RF-31 |
+| `10-cu-modulo-8-reportes` | Módulo 8. Reportes de gestión | RF-32 a RF-35 |
 
 ## Tecnologías
 
@@ -270,6 +291,8 @@ La primera vez que se ejecuten las pruebas de Playwright hay que instalar el nav
 ## Estructura del proyecto
 
 ```text
+docs/uml/                    Fuentes PlantUML de los diagramas del eje 2
+public/diagramas/            Diagramas en SVG que muestra /diseno-uml
 prisma/
   schema.prisma              Modelo de datos (índices únicos de RF-06 y RF-13)
   migrations/                Migraciones de PostgreSQL
@@ -332,99 +355,99 @@ Cada Server Action o servicio que implementa un requisito lleva un comentario co
 <details>
 <summary><strong>Módulo 1. Autenticación y control de acceso</strong> (RF-01 a RF-04)</summary>
 
-| RF | Requisito | Lógica | Pantalla o ruta | Pruebas |
-|---|---|---|---|---|
-| RF-01 | Inicio de sesión con cuentas activas | `servicios/autenticacion.ts`, `acciones/autenticacion.ts`, `lib/sesion.ts`, `lib/token-sesion.ts` | `app/(publico)/iniciar-sesion/`, `proxy.ts` | `autenticacion.test.ts`, `sesion-y-roles.test.ts`, `autenticacion.spec.ts` |
-| RF-02 | Siete roles con menú propio | `servicios/usuarios.ts`, `acciones/usuarios.ts`, `lib/roles.ts` | `app/(panel)/usuarios/`, `app/(panel)/layout.tsx` | `sesion-y-roles.test.ts`, `autenticacion.spec.ts` |
-| RF-03 | Bloqueo tras tres intentos y aviso | `servicios/autenticacion.ts` | `app/(publico)/iniciar-sesion/` | `autenticacion.test.ts`, `autenticacion.spec.ts` |
-| RF-04 | Enlace de recuperación de un solo uso | `servicios/autenticacion.ts`, `acciones/autenticacion.ts` | `app/(publico)/recuperar-contrasena/`, `app/(publico)/restablecer-contrasena/[token]/` | `autenticacion.test.ts`, `autenticacion.spec.ts` |
+| RF | CU | Requisito | Lógica | Pantalla o ruta | Pruebas |
+|---|---|---|---|---|---|
+| RF-01 | CU-01 | Inicio de sesión con cuentas activas | `servicios/autenticacion.ts`, `acciones/autenticacion.ts`, `lib/sesion.ts`, `lib/token-sesion.ts` | `app/(publico)/iniciar-sesion/`, `proxy.ts` | `autenticacion.test.ts`, `sesion-y-roles.test.ts`, `autenticacion.spec.ts` |
+| RF-02 | CU-02 | Siete roles con menú propio | `servicios/usuarios.ts`, `acciones/usuarios.ts`, `lib/roles.ts` | `app/(panel)/usuarios/`, `app/(panel)/layout.tsx` | `sesion-y-roles.test.ts`, `autenticacion.spec.ts` |
+| RF-03 | CU-03 | Bloqueo tras tres intentos y aviso | `servicios/autenticacion.ts` | `app/(publico)/iniciar-sesion/` | `autenticacion.test.ts`, `autenticacion.spec.ts` |
+| RF-04 | CU-04 | Enlace de recuperación de un solo uso | `servicios/autenticacion.ts`, `acciones/autenticacion.ts` | `app/(publico)/recuperar-contrasena/`, `app/(publico)/restablecer-contrasena/[token]/` | `autenticacion.test.ts`, `autenticacion.spec.ts` |
 
 </details>
 
 <details>
 <summary><strong>Módulo 2. Registro de pacientes</strong> (RF-05 a RF-07)</summary>
 
-| RF | Requisito | Lógica | Pantalla o ruta | Pruebas |
-|---|---|---|---|---|
-| RF-05 | Datos del registro por portal o ventanilla | `servicios/pacientes.ts`, `acciones/pacientes.ts`, `lib/validaciones/pacientes.ts` | `app/(publico)/registro/`, `app/(panel)/pacientes/nuevo/` | `pacientes.test.ts`, `pacientes-y-agenda.spec.ts` |
-| RF-06 | Documento único | `servicios/pacientes.ts`, índice único en `prisma/schema.prisma` | `app/(publico)/registro/`, `app/(panel)/pacientes/nuevo/` | `pacientes.test.ts`, `pacientes-y-agenda.spec.ts` |
-| RF-07 | Cambio de contacto con usuario, fecha y hora | `servicios/pacientes.ts`, `servicios/bitacora.ts` | `app/(panel)/mis-datos/`, `app/(panel)/pacientes/[id]/`, `app/(panel)/bitacora/` | `pacientes.test.ts`, `pacientes-y-agenda.spec.ts` |
+| RF | CU | Requisito | Lógica | Pantalla o ruta | Pruebas |
+|---|---|---|---|---|---|
+| RF-05 | CU-05 | Datos del registro por portal o ventanilla | `servicios/pacientes.ts`, `acciones/pacientes.ts`, `lib/validaciones/pacientes.ts` | `app/(publico)/registro/`, `app/(panel)/pacientes/nuevo/` | `pacientes.test.ts`, `pacientes-y-agenda.spec.ts` |
+| RF-06 | CU-06 | Documento único | `servicios/pacientes.ts`, índice único en `prisma/schema.prisma` | `app/(publico)/registro/`, `app/(panel)/pacientes/nuevo/` | `pacientes.test.ts`, `pacientes-y-agenda.spec.ts` |
+| RF-07 | CU-07 | Cambio de contacto con usuario, fecha y hora | `servicios/pacientes.ts`, `servicios/bitacora.ts` | `app/(panel)/mis-datos/`, `app/(panel)/pacientes/[id]/`, `app/(panel)/bitacora/` | `pacientes.test.ts`, `pacientes-y-agenda.spec.ts` |
 
 </details>
 
 <details>
 <summary><strong>Módulo 3. Médicos, especialidades, horarios y consultorios</strong> (RF-08 a RF-11)</summary>
 
-| RF | Requisito | Lógica | Pantalla o ruta | Pruebas |
-|---|---|---|---|---|
-| RF-08 | Especialidades y consultorios | `servicios/catalogos.ts`, `acciones/coordinacion.ts` | `app/(panel)/coordinacion/especialidades/`, `app/(panel)/coordinacion/consultorios/` | `agenda.test.ts`, `pacientes-y-agenda.spec.ts` |
-| RF-09 | Médicos con una o más especialidades | `servicios/medicos.ts`, `acciones/coordinacion.ts` | `app/(panel)/coordinacion/medicos/` | `agenda.test.ts`, `pacientes-y-agenda.spec.ts` |
-| RF-10 | Generación de espacios sin solapamiento | `servicios/generador-espacios.ts`, `servicios/disponibilidad.ts` | `app/(panel)/coordinacion/disponibilidad/` | `generador-espacios.test.ts`, `agenda.test.ts` |
-| RF-11 | Novedades que bloquean espacios | `servicios/novedades.ts` | `app/(panel)/coordinacion/novedades/` | `agenda.test.ts`, `pacientes-y-agenda.spec.ts` |
+| RF | CU | Requisito | Lógica | Pantalla o ruta | Pruebas |
+|---|---|---|---|---|---|
+| RF-08 | CU-08 | Especialidades y consultorios | `servicios/catalogos.ts`, `acciones/coordinacion.ts` | `app/(panel)/coordinacion/especialidades/`, `app/(panel)/coordinacion/consultorios/` | `agenda.test.ts`, `pacientes-y-agenda.spec.ts` |
+| RF-09 | CU-09 | Médicos con una o más especialidades | `servicios/medicos.ts`, `acciones/coordinacion.ts` | `app/(panel)/coordinacion/medicos/` | `agenda.test.ts`, `pacientes-y-agenda.spec.ts` |
+| RF-10 | CU-10 | Generación de espacios sin solapamiento | `servicios/generador-espacios.ts`, `servicios/disponibilidad.ts` | `app/(panel)/coordinacion/disponibilidad/` | `generador-espacios.test.ts`, `agenda.test.ts` |
+| RF-11 | CU-11 | Novedades que bloquean espacios | `servicios/novedades.ts` | `app/(panel)/coordinacion/novedades/` | `agenda.test.ts`, `pacientes-y-agenda.spec.ts` |
 
 </details>
 
 <details>
 <summary><strong>Módulo 4. Agendamiento, reprogramación y cancelación</strong> (RF-12 a RF-20)</summary>
 
-| RF | Requisito | Lógica | Pantalla o ruta | Pruebas |
-|---|---|---|---|---|
-| RF-12 | Espacios libres filtrados | `servicios/agendamiento.ts` | `components/citas/asistente-horarios.tsx`, `app/(panel)/mis-citas/nueva/`, `app/(panel)/agendar/` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
-| RF-13 | Sin doble reserva | `servicios/agendamiento.ts`, índices únicos en `prisma/schema.prisma` | Asistente de agendamiento | `agendamiento.test.ts` (reservas simultáneas), `agendamiento.spec.ts` (dos sesiones) |
-| RF-14 | Reserva temporal de cinco minutos | `servicios/agendamiento.ts`, `servicios/tareas.ts` | `components/citas/cuenta-regresiva.tsx` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
-| RF-15 | Código único y comprobante imprimible | `servicios/agendamiento.ts`, `lib/codigos.ts` | `components/citas/comprobante-cita.tsx` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
-| RF-16 | Reprogramación en una transacción | `servicios/agendamiento.ts`, `acciones/citas.ts` | `app/(panel)/mis-citas/[id]/reprogramar/`, `app/(panel)/citas/[id]/reprogramar/` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
-| RF-17 | Cancelación con 24 horas de anticipación | `servicios/agendamiento.ts`, `acciones/citas.ts` | `components/citas/pagina-detalle-cita.tsx` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
-| RF-18 | Una cita activa por especialidad | `servicios/agendamiento.ts` | Asistente de agendamiento | `agendamiento.test.ts` |
-| RF-19 | Canal de origen y usuario creador | `servicios/agendamiento.ts`, `acciones/citas.ts` | `app/(panel)/agendar/` (ventanilla o teléfono según el rol) | `agendamiento.test.ts` |
-| RF-20 | Bitácora de creación, reprogramación y cancelación | `servicios/bitacora.ts`, `servicios/agendamiento.ts` | `app/(panel)/bitacora/` | `agendamiento.test.ts` |
+| RF | CU | Requisito | Lógica | Pantalla o ruta | Pruebas |
+|---|---|---|---|---|---|
+| RF-12 | CU-12 | Espacios libres filtrados | `servicios/agendamiento.ts` | `components/citas/asistente-horarios.tsx`, `app/(panel)/mis-citas/nueva/`, `app/(panel)/agendar/` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
+| RF-13 | CU-13 | Sin doble reserva | `servicios/agendamiento.ts`, índices únicos en `prisma/schema.prisma` | Asistente de agendamiento | `agendamiento.test.ts` (reservas simultáneas), `agendamiento.spec.ts` (dos sesiones) |
+| RF-14 | CU-14 | Reserva temporal de cinco minutos | `servicios/agendamiento.ts`, `servicios/tareas.ts` | `components/citas/cuenta-regresiva.tsx` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
+| RF-15 | CU-15 | Código único y comprobante imprimible | `servicios/agendamiento.ts`, `lib/codigos.ts` | `components/citas/comprobante-cita.tsx` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
+| RF-16 | CU-16 | Reprogramación en una transacción | `servicios/agendamiento.ts`, `acciones/citas.ts` | `app/(panel)/mis-citas/[id]/reprogramar/`, `app/(panel)/citas/[id]/reprogramar/` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
+| RF-17 | CU-17 | Cancelación con 24 horas de anticipación | `servicios/agendamiento.ts`, `acciones/citas.ts` | `components/citas/pagina-detalle-cita.tsx` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
+| RF-18 | CU-18 | Una cita activa por especialidad | `servicios/agendamiento.ts` | Asistente de agendamiento | `agendamiento.test.ts` |
+| RF-19 | CU-19 | Canal de origen y usuario creador | `servicios/agendamiento.ts`, `acciones/citas.ts` | `app/(panel)/agendar/` (ventanilla o teléfono según el rol) | `agendamiento.test.ts` |
+| RF-20 | CU-20 | Bitácora de creación, reprogramación y cancelación | `servicios/bitacora.ts`, `servicios/agendamiento.ts` | `app/(panel)/bitacora/` | `agendamiento.test.ts` |
 
 </details>
 
 <details>
 <summary><strong>Módulo 5. Validación de cobertura</strong> (RF-21 a RF-23)</summary>
 
-| RF | Requisito | Lógica | Pantalla o ruta | Pruebas |
-|---|---|---|---|---|
-| RF-21 | Consulta de vigencia y cobertura | `servicios/cobertura.ts`, `servicios/aseguradora-simulada.ts` | `app/api/aseguradora/cobertura/route.ts`, `components/citas/confirmacion-cita.tsx` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
-| RF-22 | Opción de agendar como particular | `servicios/cobertura.ts`, `servicios/agendamiento.ts` | `components/citas/confirmacion-cita.tsx` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
-| RF-23 | Pendiente de validación y reintento | `servicios/cobertura.ts`, `servicios/tareas.ts` | `components/citas/confirmacion-cita.tsx`, `app/api/tareas/route.ts` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
+| RF | CU | Requisito | Lógica | Pantalla o ruta | Pruebas |
+|---|---|---|---|---|---|
+| RF-21 | CU-21 | Consulta de vigencia y cobertura | `servicios/cobertura.ts`, `servicios/aseguradora-simulada.ts` | `app/api/aseguradora/cobertura/route.ts`, `components/citas/confirmacion-cita.tsx` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
+| RF-22 | CU-22 | Opción de agendar como particular | `servicios/cobertura.ts`, `servicios/agendamiento.ts` | `components/citas/confirmacion-cita.tsx` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
+| RF-23 | CU-23 | Pendiente de validación y reintento | `servicios/cobertura.ts`, `servicios/tareas.ts` | `components/citas/confirmacion-cita.tsx`, `app/api/tareas/route.ts` | `agendamiento.test.ts`, `agendamiento.spec.ts` |
 
 </details>
 
 <details>
 <summary><strong>Módulo 6. Notificaciones y recordatorios</strong> (RF-24 a RF-27)</summary>
 
-| RF | Requisito | Lógica | Pantalla o ruta | Pruebas |
-|---|---|---|---|---|
-| RF-24 | Correo y SMS al confirmar, reprogramar o cancelar | `servicios/mensajes-cita.ts`, `servicios/notificaciones.ts` | `app/(panel)/bandeja-salida/` | `notificaciones.test.ts` |
-| RF-25 | Recordatorio 48 horas antes | `servicios/recordatorios.ts`, `servicios/tareas.ts` | `app/(panel)/tareas/`, `app/api/tareas/route.ts` | `notificaciones.test.ts`, `notificaciones.spec.ts` |
-| RF-26 | Respuesta del paciente al recordatorio | `servicios/recordatorios.ts`, `acciones/recordatorios.ts` | `app/(publico)/responder-cita/[token]/` | `notificaciones.test.ts`, `notificaciones.spec.ts` |
-| RF-27 | Aviso por cancelación por novedad | `servicios/novedades.ts`, `servicios/mensajes-cita.ts` | `app/(panel)/coordinacion/novedades/[id]/` | `notificaciones.test.ts` |
+| RF | CU | Requisito | Lógica | Pantalla o ruta | Pruebas |
+|---|---|---|---|---|---|
+| RF-24 | CU-24 | Correo y SMS al confirmar, reprogramar o cancelar | `servicios/mensajes-cita.ts`, `servicios/notificaciones.ts` | `app/(panel)/bandeja-salida/` | `notificaciones.test.ts` |
+| RF-25 | CU-25 | Recordatorio 48 horas antes | `servicios/recordatorios.ts`, `servicios/tareas.ts` | `app/(panel)/tareas/`, `app/api/tareas/route.ts` | `notificaciones.test.ts`, `notificaciones.spec.ts` |
+| RF-26 | CU-26 | Respuesta del paciente al recordatorio | `servicios/recordatorios.ts`, `acciones/recordatorios.ts` | `app/(publico)/responder-cita/[token]/` | `notificaciones.test.ts`, `notificaciones.spec.ts` |
+| RF-27 | CU-27 | Aviso por cancelación por novedad | `servicios/novedades.ts`, `servicios/mensajes-cita.ts` | `app/(panel)/coordinacion/novedades/[id]/` | `notificaciones.test.ts` |
 
 </details>
 
 <details>
 <summary><strong>Módulo 7. Registro de llegada y atención</strong> (RF-28 a RF-31)</summary>
 
-| RF | Requisito | Lógica | Pantalla o ruta | Pruebas |
-|---|---|---|---|---|
-| RF-28 | Llegada por documento o código | `servicios/atencion.ts`, `acciones/atencion.ts` | `app/(panel)/llegadas/` | `atencion.test.ts`, `atencion.spec.ts` |
-| RF-29 | Lista del día del médico, actualizada sola | `servicios/atencion.ts` | `app/(panel)/agenda-medico/`, `components/atencion/actualizacion-automatica.tsx` | `atencion.test.ts`, `atencion.spec.ts` |
-| RF-30 | Inicio y fin de la atención, enlace a historia clínica | `servicios/atencion.ts`, `acciones/atencion.ts` | `app/(panel)/agenda-medico/[id]/`, `app/(panel)/historia-clinica/[pacienteId]/` | `atencion.test.ts`, `atencion.spec.ts` |
-| RF-31 | Inasistencia 20 minutos después | `servicios/atencion.ts`, `servicios/tareas.ts` | `app/api/tareas/route.ts` | `atencion.test.ts` |
+| RF | CU | Requisito | Lógica | Pantalla o ruta | Pruebas |
+|---|---|---|---|---|---|
+| RF-28 | CU-28 | Llegada por documento o código | `servicios/atencion.ts`, `acciones/atencion.ts` | `app/(panel)/llegadas/` | `atencion.test.ts`, `atencion.spec.ts` |
+| RF-29 | CU-29 | Lista del día del médico, actualizada sola | `servicios/atencion.ts` | `app/(panel)/agenda-medico/`, `components/atencion/actualizacion-automatica.tsx` | `atencion.test.ts`, `atencion.spec.ts` |
+| RF-30 | CU-30 | Inicio y fin de la atención, enlace a historia clínica | `servicios/atencion.ts`, `acciones/atencion.ts` | `app/(panel)/agenda-medico/[id]/`, `app/(panel)/historia-clinica/[pacienteId]/` | `atencion.test.ts`, `atencion.spec.ts` |
+| RF-31 | CU-31 | Inasistencia 20 minutos después | `servicios/atencion.ts`, `servicios/tareas.ts` | `app/api/tareas/route.ts` | `atencion.test.ts` |
 
 </details>
 
 <details>
 <summary><strong>Módulo 8. Reportes de gestión</strong> (RF-32 a RF-35)</summary>
 
-| RF | Requisito | Lógica | Pantalla o ruta | Pruebas |
-|---|---|---|---|---|
-| RF-32 | Ocupación por especialidad, médico y consultorio | `servicios/reportes.ts` (`reporteOcupacion`) | `app/(panel)/reportes/`, `components/reportes/` | `reportes.test.ts`, `reportes.spec.ts` |
-| RF-33 | Inasistencias y cancelaciones por especialidad y canal | `servicios/reportes.ts` (`reporteAusentismo`) | `app/(panel)/reportes/` | `reportes.test.ts`, `reportes.spec.ts` |
-| RF-34 | Días entre solicitud y cita, minutos entre llegada y atención | `servicios/reportes.ts` (`reporteTiempos`) | `app/(panel)/reportes/` | `reportes.test.ts` |
-| RF-35 | Exportación a CSV y PDF con los filtros aplicados | `servicios/documentos-reporte.ts`, `servicios/exportacion-reportes.ts` | `app/(panel)/reportes/exportar/route.ts` | `reportes.test.ts`, `reportes.spec.ts` |
+| RF | CU | Requisito | Lógica | Pantalla o ruta | Pruebas |
+|---|---|---|---|---|---|
+| RF-32 | CU-32 | Ocupación por especialidad, médico y consultorio | `servicios/reportes.ts` (`reporteOcupacion`) | `app/(panel)/reportes/`, `components/reportes/` | `reportes.test.ts`, `reportes.spec.ts` |
+| RF-33 | CU-33 | Inasistencias y cancelaciones por especialidad y canal | `servicios/reportes.ts` (`reporteAusentismo`) | `app/(panel)/reportes/` | `reportes.test.ts`, `reportes.spec.ts` |
+| RF-34 | CU-34 | Días entre solicitud y cita, minutos entre llegada y atención | `servicios/reportes.ts` (`reporteTiempos`) | `app/(panel)/reportes/` | `reportes.test.ts` |
+| RF-35 | CU-35 | Exportación a CSV y PDF con los filtros aplicados | `servicios/documentos-reporte.ts`, `servicios/exportacion-reportes.ts` | `app/(panel)/reportes/exportar/route.ts` | `reportes.test.ts`, `reportes.spec.ts` |
 
 </details>
 
