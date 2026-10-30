@@ -1,0 +1,253 @@
+@startuml
+!include estilo.iuml
+skinparam classBackgroundColor #FFF2CC
+skinparam classBorderColor #B7950B
+skinparam classHeaderBackgroundColor #FBE5A6
+skinparam classFontSize 13
+skinparam classAttributeFontSize 11
+skinparam enumBackgroundColor #EEF3F8
+skinparam enumBorderColor #8DA3B8
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 70
+hide empty methods
+hide circle
+
+title Diagrama de clases del dominio: sistema de gestión de citas médicas
+
+class Usuario {
+  - id: Int
+  - correo: String {unique}
+  - hashContrasena: String
+  - nombre: String
+  - rol: Rol
+  - intentosFallidos: Int
+  - bloqueadoHasta: DateTime [0..1]
+  - activo: Boolean
+  --
+  + validarCredenciales(correo, contrasena): ResultadoInicioSesion
+  + solicitarRecuperacion(correo): void
+  + restablecerContrasena(token, contrasena): Resultado
+}
+
+class TokenRecuperacion {
+  - tokenHash: String {unique}
+  - expiraEn: DateTime
+  - usadoEn: DateTime [0..1]
+}
+
+class Paciente {
+  - tipoDocumento: TipoDocumento
+  - numeroDocumento: String
+  - nombres: String
+  - apellidos: String
+  - fechaNacimiento: DateTime
+  - telefono: String
+  - correo: String
+  --
+  + registrar(datos): Resultado
+  + existeDocumento(tipo, numero): Boolean
+  + actualizarContacto(datos): Resultado
+}
+
+class Aseguradora {
+  - codigo: String {unique}
+  - nombre: String
+  - activo: Boolean
+}
+
+class Especialidad {
+  - nombre: String {unique}
+  - descripcion: String [0..1]
+  - activo: Boolean
+  --
+  + guardar(datos): Resultado
+  + cambiarEstado(activo): Resultado
+}
+
+class Consultorio {
+  - nombre: String {unique}
+  - ubicacion: String
+  - activo: Boolean
+  --
+  + guardar(datos): Resultado
+  + cambiarEstado(activo): Resultado
+}
+
+class Medico {
+  - nombres: String
+  - apellidos: String
+  - registroMedico: String {unique}
+  - correo: String [0..1]
+  - telefono: String [0..1]
+  - activo: Boolean
+  --
+  + guardar(datos): Resultado
+  + agendaDelDia(fecha): Cita[*]
+}
+
+class DisponibilidadSemanal {
+  - diaSemana: Int
+  - horaInicio: String
+  - horaFin: String
+  - duracionMinutos: Int
+  - activo: Boolean
+  --
+  + generarEspacios(semanas): Espacio[*]
+  + desactivar(): Resultado
+}
+
+class Novedad {
+  - tipo: TipoNovedad
+  - inicio: DateTime
+  - fin: DateTime
+  - motivo: String [0..1]
+  --
+  + registrar(datos): Resultado
+  + citasAfectadas(): Cita[*]
+  + cancelarCitas(): Int
+}
+
+class Espacio {
+  - inicio: DateTime
+  - fin: DateTime
+  - estado: EstadoEspacio
+  - reservadoHasta: DateTime [0..1]
+  --
+  + reservar(usuario): Resultado
+  + liberar(usuario): Boolean
+  + liberarVencidas(ahora): Int
+}
+
+class Cita {
+  - codigo: String {unique}
+  - estado: EstadoCita
+  - canal: CanalOrigen
+  - motivoCancelacion: String [0..1]
+  - fechaSolicitud: DateTime
+  - horaLlegada: DateTime [0..1]
+  - inicioAtencion: DateTime [0..1]
+  - finAtencion: DateTime [0..1]
+  - resultadoCobertura: ResultadoCobertura [0..1]
+  - esParticular: Boolean
+  - tokenRespuesta: String {unique}
+  --
+  + crear(datos): Resultado
+  + reprogramar(espacioNuevo): Resultado
+  + cancelar(motivo): Resultado
+  + confirmarDesdeRecordatorio(token): Resultado
+  + registrarLlegada(): Resultado
+  + iniciarAtencion(): Resultado
+  + finalizarAtencion(): Resultado
+}
+
+class Notificacion {
+  - destinatario: String
+  - canal: CanalNotificacion
+  - tipo: String
+  - asunto: String [0..1]
+  - contenido: String
+  - fechaProgramada: DateTime
+  - estado: EstadoNotificacion
+  --
+  + registrar(datos): Notificacion
+}
+
+class Bitacora {
+  - entidad: String
+  - entidadId: String [0..1]
+  - accion: String
+  - estadoAnterior: String [0..1]
+  - estadoNuevo: String [0..1]
+  - fecha: DateTime
+  --
+  + registrar(evento): void
+}
+
+' Relaciones del dominio
+Usuario "1" *-- "0..*" TokenRecuperacion : genera >
+Usuario "0..1" -- "0..1" Paciente : cuenta del portal
+Usuario "0..1" -- "0..1" Medico : cuenta del médico
+Paciente "0..*" --> "1" Aseguradora : afiliado a >
+Medico "0..*" -- "1..*" Especialidad : atiende >
+Medico "1" *-- "0..*" DisponibilidadSemanal : configura >
+Medico "1" *-- "0..*" Novedad : registra >
+Consultorio "1" -- "0..*" DisponibilidadSemanal : se usa en <
+DisponibilidadSemanal "0..1" -- "0..*" Espacio : genera >
+Medico "1" -- "0..*" Espacio
+Consultorio "1" -- "0..*" Espacio
+Novedad "0..1" -- "0..*" Espacio : bloquea >
+Paciente "1" -- "0..*" Cita : solicita >
+Espacio "1" -- "0..*" Cita : ocupa <
+Especialidad "1" -- "0..*" Cita
+Usuario "1" -- "0..*" Cita : creada por <
+Cita "0..1" o-- "0..*" Notificacion : genera >
+Usuario "0..1" -- "0..*" Bitacora : registra >
+
+package "Enumerados" {
+  enum Rol {
+    paciente
+    recepcionista
+    agente_telefonico
+    medico
+    coordinador_agenda
+    director_medico
+    administrador
+  }
+  enum EstadoCita {
+    agendada
+    confirmada
+    pendiente_validacion
+    en_sala
+    atendida
+    cancelada
+    inasistencia
+  }
+  enum EstadoEspacio {
+    libre
+    reservado_temporal
+    ocupado
+    bloqueado
+  }
+  enum ResultadoCobertura {
+    cubierta
+    sin_vigencia
+    sin_cobertura
+    sin_respuesta
+  }
+  enum CanalOrigen {
+    ventanilla
+    telefono
+    portal_web
+    aplicacion_movil
+  }
+  enum TipoNovedad {
+    vacaciones
+    incapacidad
+    capacitacion
+  }
+  enum TipoDocumento {
+    CC
+    TI
+    CE
+    RC
+    PA
+  }
+  enum CanalNotificacion {
+    correo
+    sms
+  }
+  enum EstadoNotificacion {
+    pendiente
+    enviada
+  }
+}
+Notificacion -[hidden]right- Enumerados
+
+note as N1
+  Las operaciones de cada clase se implementan
+  como funciones de los módulos de src/servicios/
+  (por ejemplo, Cita.crear() es crearCita()
+  en servicios/agendamiento.ts).
+end note
+@enduml

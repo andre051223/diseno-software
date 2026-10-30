@@ -1,0 +1,54 @@
+@startuml
+!include estilo.iuml
+skinparam nodeBackgroundColor #F3F9FD
+skinparam nodeBorderColor #4A9CC7
+skinparam artifactBackgroundColor #FFF2CC
+skinparam artifactBorderColor #B7950B
+skinparam databaseBackgroundColor #EEF3F8
+skinparam nodesep 60
+skinparam ranksep 70
+
+title Diagrama de despliegue: sistema de gestión de citas médicas en producción
+
+node "Dispositivo del usuario\n<<device>>" as DISP {
+  node "Navegador web\n<<execution environment>>" as NAV {
+    artifact "Interfaz React\n(HTML, CSS, JS)" as UIJS
+  }
+}
+
+node "Equipo del hospital\n(recepción, call center,\nconsultorios, dirección)\n<<device>>" as EQH {
+  node "Navegador web\n<<execution environment>>" as NAV2
+}
+
+cloud "Plataforma Vercel" as VERCEL {
+  node "Red de distribución (CDN)\n<<execution environment>>" as CDN {
+    artifact "Archivos estáticos\n(_next/static, diagramas SVG)" as EST
+  }
+  node "Vercel Functions\n(Node.js)\n<<execution environment>>" as FUN {
+    artifact "hospital-citas\n(compilación de Next.js 16)" as APP
+    artifact "proxy.ts" as PRXA
+    artifact "/api/aseguradora/cobertura" as APIA
+    artifact "/api/tareas" as APIT
+  }
+}
+
+cloud "Neon" as NEON {
+  node "Servidor PostgreSQL\n<<execution environment>>" as PG {
+    database "neondb\n(13 modelos, 9 enumerados)" as BD
+  }
+}
+
+node "Programador externo\n(cron)\n<<device>>" as CRON
+
+node "Equipo de desarrollo\n<<device>>" as DEV {
+  artifact "Repositorio Git\n(GitHub)" as GIT
+}
+
+DISP -- CDN : HTTPS
+DISP -- FUN : HTTPS
+EQH -- FUN : HTTPS
+CRON -- APIT : HTTPS\nBearer TAREAS_TOKEN
+FUN -- PG : TCP/TLS 5432\n(DATABASE_URL, pooler)
+APP ..> APIA : HTTPS (fetch,\nmáximo 10 s)
+GIT ..> VERCEL : despliegue\n(vercel-build: prisma migrate\ndeploy + next build)
+@enduml

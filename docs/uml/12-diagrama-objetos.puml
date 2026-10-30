@@ -1,0 +1,104 @@
+@startuml
+!include estilo.iuml
+skinparam objectBackgroundColor #FFF2CC
+skinparam objectBorderColor #B7950B
+skinparam objectFontSize 12
+skinparam objectAttributeFontSize 11
+skinparam nodesep 50
+skinparam ranksep 60
+
+title Diagrama de objetos: estado del sistema después de confirmar la cita HSR-7K3QX2
+
+object "<u>cuentaPaciente : Usuario</u>" as U {
+  rol = paciente
+  intentosFallidos = 0
+  activo = true
+}
+
+object "<u>paciente52037011 : Paciente</u>" as P {
+  tipoDocumento = CC
+  numeroDocumento = "52037011"
+}
+
+object "<u>saludAndina : Aseguradora</u>" as A {
+  codigo = "SAN"
+  nombre = "Salud Andina EPS"
+}
+
+object "<u>medicinaGeneral : Especialidad</u>" as E {
+  nombre = "Medicina general"
+  activo = true
+}
+
+object "<u>draGomez : Medico</u>" as M {
+  nombres = "Laura Marcela"
+  apellidos = "Gómez Restrepo"
+  registroMedico = "RM-10001"
+}
+
+object "<u>consultorio101 : Consultorio</u>" as C {
+  nombre = "Consultorio 101"
+  ubicacion = "Bloque A, piso 1"
+}
+
+object "<u>bloqueMartes : DisponibilidadSemanal</u>" as D {
+  diaSemana = 2
+  horaInicio = "07:00"
+  horaFin = "12:00"
+  duracionMinutos = 20
+}
+
+object "<u>espacio0800 : Espacio</u>" as S {
+  inicio = 10/11/2026 08:00
+  fin = 10/11/2026 08:20
+  estado = ocupado
+  reservadoHasta = null
+}
+
+object "<u>citaHSR7K3QX2 : Cita</u>" as CI {
+  codigo = "HSR-7K3QX2"
+  estado = agendada
+  canal = portal_web
+  resultadoCobertura = cubierta
+  esParticular = false
+}
+
+object "<u>correoAgendada : Notificacion</u>" as N1 {
+  canal = correo
+  tipo = "cita_agendada"
+  estado = enviada
+}
+
+object "<u>smsAgendada : Notificacion</u>" as N2 {
+  canal = sms
+  tipo = "cita_agendada"
+  estado = enviada
+}
+
+object "<u>registroCreacion : Bitacora</u>" as B {
+  entidad = "Cita"
+  accion = "crear_cita"
+  estadoAnterior = null
+}
+
+U -- P
+P -- A
+M -- E
+M -- D
+D -- C
+D -- S
+S -- M
+S -- C
+CI -- P
+CI -- S
+CI -- E
+CI -- U : creadaPor
+CI -- N1
+CI -- N2
+B -- U
+
+note bottom of CI
+  Valores ilustrativos tomados de los datos
+  de demostración del proyecto.
+end note
+@enduml

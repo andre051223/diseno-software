@@ -1,0 +1,100 @@
+@startuml
+!include estilo.iuml
+skinparam sequenceParticipantBackgroundColor #FFF2CC
+skinparam sequenceParticipantBorderColor #B7950B
+skinparam sequenceLifeLineBorderColor #8DA3B8
+skinparam sequenceGroupBorderColor #4A9CC7
+skinparam sequenceGroupBackgroundColor #F3F9FD
+skinparam sequenceMessageAlign left
+skinparam maxMessageSize 250
+autonumber "<b>0."
+
+title Diagrama de secuencia: CU-15 Confirmar cita y generar comprobante (incluye CU-13, CU-14, CU-18, CU-20, CU-21 y CU-24)
+
+actor "Paciente o personal\nde agendamiento" as U
+boundary "AsistenteHorarios /\nConfirmacionCita" as UI
+control "acciones/citas" as AC
+control "servicios/agendamiento" as AG
+control "servicios/cobertura" as CO
+participant "API aseguradora\n(simulada)" as AS
+entity "Espacio" as ES
+entity "Cita" as CI
+control "Bitácora y\nnotificaciones" as BN
+
+== Paso 1: reservar el horario (CU-14) ==
+U -> UI : elige un espacio libre (CU-12)
+activate UI
+UI -> AC : reservarEspacioAccion(espacioId)
+activate AC
+AC -> AG : citaActivaEnEspecialidad(paciente, especialidad)
+AG --> AC : ninguna (CU-18, aviso temprano)
+AC -> AG : reservarEspacio(espacioId, usuario)
+activate AG
+AG -> ES : UPDATE estado = reservado_temporal,\nreservadoHasta = ahora + 5 min\nWHERE espacio sigue tomable
+alt otro usuario tomó el espacio
+  ES --> AG : 0 filas
+  AG --> AC : no disponible
+  AC --> UI : volver a la lista con aviso
+else espacio reservado
+  ES --> AG : 1 fila
+  AG --> AC : reservadoHasta
+  deactivate AG
+  AC --> UI : paso de confirmación con cuenta regresiva
+end
+deactivate AC
+
+== Paso 2: validar cobertura (CU-21) ==
+UI -> AC : validarCoberturaAccion()
+activate AC
+AC -> AG : obtenerReservaVigente()
+AG --> AC : reserva vigente
+AC -> CO : consultarCobertura(documento, especialidad)
+activate CO
+CO -> AS : POST /api/aseguradora/cobertura
+activate AS
+alt respuesta antes de 10 s
+  AS --> CO : { vigente, cubierta, mensaje }
+  CO --> AC : cubierta | sin_vigencia | sin_cobertura
+else sin respuesta en 10 s (CU-23)
+  CO --> AC : sin_respuesta
+end
+deactivate AS
+deactivate CO
+AC --> UI : resultado y token firmado de cobertura
+deactivate AC
+UI --> U : muestra el resultado de la aseguradora
+
+opt sin vigencia o sin cobertura (CU-22)
+  U -> UI : acepta agendar como particular
+end
+
+== Paso 3: confirmar la cita (CU-15) ==
+U -> UI : confirma la cita
+UI -> AC : confirmarCitaAccion(token, particular)
+activate AC
+AC -> AG : crearCita(datos)
+activate AG
+group transacción
+  AG -> CI : ¿cita activa en la especialidad? (CU-18)
+  CI --> AG : no
+  AG -> ES : UPDATE estado = ocupado WHERE tomable (CU-13)
+  ES --> AG : 1 fila
+  AG -> CI : crear(codigo HSR-XXXXXX, estado, canal, cobertura)
+  note right of CI
+    espacioActivoId es único:
+    la base rechaza una segunda
+    cita en el mismo espacio.
+  end note
+  AG -> BN : registrarBitacora("crear_cita") (CU-20)
+  AG -> BN : notificarCita(correo y SMS) (CU-24)
+end
+AG --> AC : { ok, citaId, codigo, estado }
+deactivate AG
+opt sin_respuesta de la aseguradora
+  AC -> CO : reintentarCoberturaCita(citaId) en segundo plano
+end
+AC --> UI : redirigir al detalle de la cita
+deactivate AC
+UI --> U : comprobante con código, fecha, hora,\nmédico, especialidad y consultorio
+deactivate UI
+@enduml

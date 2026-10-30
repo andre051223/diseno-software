@@ -17,7 +17,7 @@ Proyecto académico de la asignatura **Diseño de Software** de la Fundación Un
 1. [Alcance](#alcance)
 2. [Funcionalidades](#funcionalidades)
 3. [Arquitectura](#arquitectura)
-4. [Diseño UML (eje 2)](#diseño-uml-eje-2)
+4. [Diseño UML (ejes 2 y 3)](#diseño-uml-ejes-2-y-3)
 5. [Tecnologías](#tecnologías)
 6. [Puesta en marcha](#puesta-en-marcha)
 7. [Configuración](#configuración)
@@ -96,9 +96,9 @@ flowchart TD
 | Soporte | `src/lib/` | Configuración, sesión, roles, fechas, etiquetas y esquemas de validación. |
 | Persistencia | `prisma/` | Esquema, migraciones y semilla. |
 
-## Diseño UML (eje 2)
+## Diseño UML (ejes 2 y 3)
 
-Los requisitos funcionales del eje 1 están modelados en diez diagramas de casos de uso. Cada caso de uso **CU-nn representa al requisito RF-nn** con el mismo número; la columna «CU» de la [trazabilidad de requisitos](#trazabilidad-de-requisitos) lo indica para cada uno.
+En el eje 2, los requisitos funcionales del eje 1 están modelados en diez diagramas de casos de uso. Cada caso de uso **CU-nn representa al requisito RF-nn** con el mismo número; la columna «CU» de la [trazabilidad de requisitos](#trazabilidad-de-requisitos) lo indica para cada uno. En el eje 3 se agregan cinco diagramas estructurales y tres diagramas de secuencia que describen cómo está construido el sistema.
 
 - Página pública con los diagramas y la tabla de trazabilidad a casos de uso: [`/diseno-uml`](https://diseno-software.vercel.app/diseno-uml).
 - Fuentes en PlantUML e instrucciones para regenerar los SVG: [`docs/uml/`](docs/uml/). Las imágenes se sirven desde `public/diagramas/`.
@@ -115,6 +115,19 @@ Los requisitos funcionales del eje 1 están modelados en diez diagramas de casos
 | `08-cu-modulo-6-notificaciones` | Módulo 6. Notificaciones y recordatorios | RF-24 a RF-27 |
 | `09-cu-modulo-7-atencion` | Módulo 7. Registro de llegada y atención | RF-28 a RF-31 |
 | `10-cu-modulo-8-reportes` | Módulo 8. Reportes de gestión | RF-32 a RF-35 |
+
+Diagramas del eje 3:
+
+| Archivo | Diagrama | Categoría | Requisitos |
+|---|---|---|---|
+| `11-diagrama-clases` | Diagrama de clases del dominio | Estructural | RF-01 a RF-35 |
+| `12-diagrama-objetos` | Diagrama de objetos después de confirmar la cita HSR-7K3QX2 | Estructural | RF-13, RF-15, RF-19, RF-20 y RF-24 |
+| `13-diagrama-componentes` | Diagrama de componentes | Estructural | RF-01 a RF-35 |
+| `14-diagrama-paquetes` | Diagrama de paquetes | Estructural | RF-01 a RF-35 |
+| `15-diagrama-despliegue` | Diagrama de despliegue en Vercel y Neon | Estructural | RF-21, RF-23, RF-25 y RF-31 |
+| `16-secuencia-iniciar-sesion` | Secuencia del inicio de sesión | Comportamiento | RF-01 y RF-03 |
+| `17-secuencia-agendar-cita` | Secuencia de la confirmación de una cita | Comportamiento | RF-13, RF-14, RF-15, RF-18, RF-20, RF-21, RF-23 y RF-24 |
+| `18-secuencia-recordatorio` | Secuencia del envío y la respuesta del recordatorio | Comportamiento | RF-25 y RF-26 |
 
 ## Tecnologías
 
@@ -291,7 +304,7 @@ La primera vez que se ejecuten las pruebas de Playwright hay que instalar el nav
 ## Estructura del proyecto
 
 ```text
-docs/uml/                    Fuentes PlantUML de los diagramas del eje 2
+docs/uml/                    Fuentes PlantUML de los diagramas de los ejes 2 y 3
 public/diagramas/            Diagramas en SVG que muestra /diseno-uml
 prisma/
   schema.prisma              Modelo de datos (índices únicos de RF-06 y RF-13)

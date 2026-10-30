@@ -1,0 +1,80 @@
+@startuml
+!include estilo.iuml
+skinparam componentStyle uml2
+skinparam componentBackgroundColor #FFF2CC
+skinparam componentBorderColor #B7950B
+skinparam componentFontSize 12
+skinparam interfaceBackgroundColor #FFFFFF
+skinparam interfaceBorderColor #3F4A57
+skinparam databaseBackgroundColor #EEF3F8
+skinparam linetype polyline
+skinparam nodesep 55
+skinparam ranksep 60
+
+title Diagrama de componentes: sistema de gestión de citas médicas
+
+actor "Usuario\n(navegador)" as NAV
+actor "Programador externo\n(cron)" as CRON
+
+interface "HTTPS" as IHTTP
+component "Protección de rutas\n(proxy.ts)" as PROXY
+
+package "Presentación\n(app/ y components/)" as PRES {
+  component "Pantallas públicas" as UIPUB
+  component "Panel por rol" as UIPANEL
+}
+
+interface "IAccionesFormulario" as IACC
+component "Server Actions\n(acciones/)\nvalidación Zod + rol" as ACC
+
+package "Dominio (servicios/)" as DOM {
+  component "Autenticación" as SAUT
+  component "Pacientes" as SPAC
+  component "Agenda\n(catálogos, médicos,\ndisponibilidad, novedades)" as SAGE
+  component "Agendamiento" as SCIT
+  component "Cobertura" as SCOB
+  component "Atención" as SATE
+  component "Reportes y\nexportación" as SREP
+  component "Notificaciones\ny recordatorios" as SNOT
+  component "Bitácora" as SBIT
+  component "Tareas\nprogramadas" as STAR
+}
+
+interface "ICobertura" as ICOB
+component "API aseguradora\nsimulada\n(api/aseguradora)" as APIASE
+interface "ITareas" as ITAR
+component "API tareas\n(api/tareas)" as APITAR
+
+interface "IRepositorio" as IREP
+component "Prisma Client" as PRISMA
+database "PostgreSQL\n(Neon)" as BD
+
+NAV --> IHTTP
+IHTTP - PROXY
+PROXY --> PRES : sesión y rol
+UIPUB ..> IACC
+UIPANEL ..> IACC
+IACC - ACC
+ACC ..> DOM : invoca
+UIPANEL ..> SREP : consulta
+
+SCIT ..> SNOT
+SCIT ..> SBIT
+SAGE ..> SNOT
+SATE ..> SBIT
+STAR ..> SCIT
+STAR ..> SCOB
+STAR ..> SNOT
+STAR ..> SATE
+
+SCOB ..> ICOB
+ICOB - APIASE
+
+CRON --> ITAR
+ITAR - APITAR
+APITAR ..> STAR
+
+DOM ..> IREP
+IREP - PRISMA
+PRISMA --> BD : TCP/TLS
+@enduml

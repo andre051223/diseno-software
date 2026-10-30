@@ -5,13 +5,22 @@ import { expect, test } from "@playwright/test";
 const ANCHO_MOVIL = 360;
 
 test.describe("Página pública de diseño UML", () => {
-  test("carga sin sesión y muestra los diez diagramas con texto alternativo", async ({ page }) => {
+  test("carga sin sesión y muestra los dieciocho diagramas con texto alternativo", async ({ page }) => {
     await page.goto("/diseno-uml");
     await expect(page).toHaveURL(/\/diseno-uml$/);
     await expect(page.getByRole("heading", { level: 1, name: "Diseño UML del sistema" })).toBeVisible();
 
+    // Los diagramas se agrupan en tres secciones.
+    for (const seccion of [
+      "Eje 2: casos de uso",
+      "Eje 3: diagramas estructurales",
+      "Eje 3: diagramas de comportamiento",
+    ]) {
+      await expect(page.getByRole("heading", { level: 2, name: seccion, exact: true })).toBeVisible();
+    }
+
     const imagenes = page.locator("main img");
-    await expect(imagenes).toHaveCount(10);
+    await expect(imagenes).toHaveCount(18);
     for (const imagen of await imagenes.all()) {
       const alt = await imagen.getAttribute("alt");
       expect(alt?.trim(), "texto alternativo del diagrama").toBeTruthy();
@@ -19,7 +28,7 @@ test.describe("Página pública de diseño UML", () => {
 
     // Cada SVG se sirve sin sesión y se puede abrir en tamaño completo.
     const enlaces = page.getByRole("link", { name: /Abrir en tamaño completo/ });
-    await expect(enlaces).toHaveCount(10);
+    await expect(enlaces).toHaveCount(18);
     for (const enlace of await enlaces.all()) {
       await expect(enlace).toHaveAttribute("target", "_blank");
       const respuesta = await page.request.get((await enlace.getAttribute("href"))!);
@@ -39,7 +48,7 @@ test.describe("Página pública de diseño UML", () => {
   test("pasa axe sin infracciones graves y no desborda a 360 px", async ({ page }) => {
     await page.setViewportSize({ width: ANCHO_MOVIL, height: 800 });
     await page.goto("/diseno-uml");
-    await expect(page.locator("main img")).toHaveCount(10);
+    await expect(page.locator("main img")).toHaveCount(18);
     await expect(page.locator("tbody tr")).toHaveCount(35);
 
     const resultado = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();

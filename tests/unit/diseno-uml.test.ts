@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { diagramas, idRequisito, trazabilidad } from "@/lib/diseno-uml";
 
@@ -31,11 +33,29 @@ describe("Diseño UML: trazabilidad de requisitos a casos de uso", () => {
     expect(cubiertos).toEqual(todosLosRequisitos);
   });
 
-  it("hay diez diagramas con imagen SVG y texto alternativo", () => {
-    expect(diagramas).toHaveLength(10);
+  it("hay dieciocho diagramas con imagen SVG y texto alternativo", () => {
+    expect(diagramas).toHaveLength(18);
     for (const diagrama of diagramas) {
       expect(diagrama.archivo).toMatch(/^\/diagramas\/[a-z0-9-]+\.svg$/);
       expect(diagrama.alt.trim()).not.toBe("");
+    }
+  });
+
+  it("hay 10 diagramas del eje 2, 5 estructurales y 3 de comportamiento del eje 3", () => {
+    const contar = (eje: number, categoria: string) =>
+      diagramas.filter((diagrama) => diagrama.eje === eje && diagrama.categoria === categoria).length;
+    expect(contar(2, "casos-uso")).toBe(10);
+    expect(contar(3, "estructural")).toBe(5);
+    expect(contar(3, "comportamiento")).toBe(3);
+  });
+
+  it("cada SVG existe en public/diagramas/ y su viewBox coincide con ancho y alto", () => {
+    for (const diagrama of diagramas) {
+      const contenido = readFileSync(path.join(process.cwd(), "public", diagrama.archivo), "utf-8");
+      const viewBox = contenido.match(/viewBox="0 0 (\d+) (\d+)"/);
+      expect(viewBox, `viewBox de ${diagrama.archivo}`).not.toBeNull();
+      expect(Number(viewBox![1]), `ancho de ${diagrama.archivo}`).toBe(diagrama.ancho);
+      expect(Number(viewBox![2]), `alto de ${diagrama.archivo}`).toBe(diagrama.alto);
     }
   });
 });

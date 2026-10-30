@@ -1,0 +1,66 @@
+@startuml
+!include estilo.iuml
+skinparam sequenceParticipantBackgroundColor #FFF2CC
+skinparam sequenceParticipantBorderColor #B7950B
+skinparam sequenceLifeLineBorderColor #8DA3B8
+skinparam sequenceGroupBorderColor #4A9CC7
+skinparam sequenceGroupBackgroundColor #F3F9FD
+skinparam sequenceBoxBackgroundColor #FAFBFC
+skinparam sequenceMessageAlign left
+skinparam maxMessageSize 260
+autonumber "<b>0."
+
+title Diagrama de secuencia: CU-01 Iniciar sesión con CU-03 Bloquear cuenta (RF-01 y RF-03)
+
+actor "Usuario del sistema" as U
+boundary "FormularioInicioSesion\n(iniciar-sesion)" as F
+control "iniciarSesionAccion\n(acciones/autenticacion)" as A
+control "validarCredenciales\n(servicios/autenticacion)" as S
+entity "Usuario" as EU
+entity "Notificacion" as EN
+entity "Bitacora" as EB
+control "crearSesion\n(lib/sesion)" as SES
+
+U -> F : ingresa correo y contraseña
+activate F
+F -> A : enviar(formData)
+activate A
+A -> A : validar formato con Zod
+A -> S : validarCredenciales(correo, contrasena)
+activate S
+S -> EU : buscar por correo
+activate EU
+EU --> S : usuario
+deactivate EU
+
+alt cuenta inexistente o inactiva
+  S --> A : { ok: false, "credenciales no válidas" }
+else cuenta bloqueada (bloqueadoHasta > ahora)
+  S --> A : { ok: false, "cuenta bloqueada hasta HH:mm" }
+else contraseña incorrecta
+  S -> S : intentos = intentosFallidos + 1
+  alt intentos >= 3
+    S -> EU : bloqueadoHasta = ahora + 15 min,\nintentosFallidos = 0
+    S -> EN : registrar aviso de bloqueo al correo del titular
+    S -> EB : registrar("bloqueo_por_intentos")
+    S --> A : { ok: false, "cuenta bloqueada 15 minutos" }
+  else intentos < 3
+    S -> EU : intentosFallidos = intentos
+    S --> A : { ok: false, "credenciales no válidas" }
+  end
+else contraseña correcta
+  S -> EU : reiniciar intentosFallidos y bloqueadoHasta
+  S --> A : { ok: true, usuario { id, nombre, rol } }
+  deactivate S
+  A -> SES : crearSesion(usuario)
+  activate SES
+  SES -> SES : firmar token JWT (jose)\ny guardar cookie httpOnly
+  SES --> A : sesión abierta
+  deactivate SES
+  A --> F : redirigir a la página inicial del rol
+end
+A --> F : mensaje de error (si aplica)
+deactivate A
+F --> U : panel del rol o mensaje
+deactivate F
+@enduml

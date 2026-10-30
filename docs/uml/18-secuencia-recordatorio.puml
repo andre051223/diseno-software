@@ -1,0 +1,91 @@
+@startuml
+!include estilo.iuml
+skinparam sequenceParticipantBackgroundColor #FFF2CC
+skinparam sequenceParticipantBorderColor #B7950B
+skinparam sequenceLifeLineBorderColor #8DA3B8
+skinparam sequenceGroupBorderColor #4A9CC7
+skinparam sequenceGroupBackgroundColor #F3F9FD
+skinparam sequenceMessageAlign left
+skinparam maxMessageSize 250
+autonumber "<b>0."
+
+title Diagrama de secuencia: CU-25 Enviar recordatorio y CU-26 Responder recordatorio (RF-25 y RF-26)
+
+actor "Temporizador\n(cron externo)" as T
+boundary "/api/tareas" as API
+control "servicios/tareas" as TA
+control "servicios/recordatorios" as RE
+control "servicios/mensajes-cita" as ME
+entity "Cita" as CI
+entity "Notificacion" as NO
+actor "Paciente" as P
+boundary "responder-cita/[token]" as RC
+control "acciones/recordatorios" as AR
+
+== Envío del recordatorio (CU-25) ==
+T -> API : POST Authorization: Bearer TAREAS_TOKEN
+activate API
+API -> API : comparar token (timingSafeEqual)
+alt token inválido
+  API --> T : 401 No autorizado
+else token válido
+  API -> TA : ejecutarTareasProgramadas("api")
+  activate TA
+  TA -> TA : liberar reservas vencidas y\nreintentar coberturas pendientes
+  TA -> RE : enviarRecordatorios(ahora)
+  activate RE
+  RE -> CI : buscar citas agendadas que inician\nen las próximas 48 h sin recordatorio
+  CI --> RE : lista de citas
+  loop por cada cita
+    RE -> CI : UPDATE recordatorioEnviadoEn = ahora\nWHERE aún no tiene recordatorio
+    RE -> ME : notificarCita(cita, "recordatorio")
+    activate ME
+    ME -> NO : correo con enlaces confirmar / cancelar
+    ME -> NO : SMS con el enlace de respuesta
+    deactivate ME
+  end
+  RE --> TA : recordatorios enviados
+  deactivate RE
+  TA -> TA : marcar inasistencias (CU-31)\ny registrar resumen en bitácora
+  TA --> API : resumen
+  deactivate TA
+  API --> T : 200 { ok, resumen }
+end
+deactivate API
+
+... horas después ...
+
+== Respuesta del paciente (CU-26) ==
+P -> RC : abre el enlace del mensaje
+activate RC
+RC -> RE : obtenerCitaPorToken(token)
+RE --> RC : cita y opciones disponibles
+alt confirma asistencia
+  P -> RC : pulsa "Confirmar"
+  RC -> AR : confirmarRecordatorioAccion(token)
+  activate AR
+  AR -> RE : confirmarDesdeRecordatorio(token)
+  activate RE
+  RE -> CI : UPDATE estado = confirmada\nWHERE estado = agendada
+  RE -> NO : notificar confirmación (CU-24)
+  RE --> AR : ok
+  deactivate RE
+  AR --> RC : cita confirmada
+  deactivate AR
+else cancela con al menos 24 h
+  P -> RC : pulsa "Cancelar" e indica el motivo
+  RC -> AR : cancelarRecordatorioAccion(token, motivo)
+  activate AR
+  AR -> RE : cancelarDesdeRecordatorio(token, motivo)
+  RE -> CI : estado = cancelada, liberar espacio (CU-17)
+  RE -> NO : notificar cancelación (CU-24)
+  AR --> RC : cita cancelada
+  deactivate AR
+end
+RC --> P : mensaje de resultado
+deactivate RC
+note over CI
+  La recepción y la agenda del médico
+  leen el nuevo estado de la cita.
+end note
+@enduml

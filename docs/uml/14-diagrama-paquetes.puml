@@ -1,0 +1,88 @@
+@startuml
+!include estilo.iuml
+skinparam packageStyle folder
+skinparam packageFontSize 13
+skinparam nodesep 70
+skinparam ranksep 80
+
+title Diagrama de paquetes: organización del código del proyecto hospital-citas
+
+package "Capa de presentación" as CP {
+  package "app/(publico)" as PUB {
+  }
+  package "app/(panel)" as PAN {
+  }
+  package "app/api" as API {
+  }
+  package "components" as COMP {
+    package "ui" as UI {
+    }
+    package "citas" as CITASUI {
+    }
+    package "atencion" as ATEUI {
+    }
+    package "reportes" as REPUI {
+    }
+  }
+}
+
+package "Capa de aplicación" as CA {
+  package "acciones" as ACC {
+  }
+  package "proxy.ts" as PRX {
+  }
+}
+
+package "Capa de dominio" as CD {
+  package "servicios" as SER {
+  }
+}
+
+package "Capa de soporte" as CS {
+  package "lib" as LIB {
+    package "validaciones" as VAL {
+    }
+  }
+  package "generated/prisma" as GEN {
+  }
+}
+
+package "Capa de persistencia" as CPER {
+  package "prisma" as PRI {
+    package "migrations" as MIG {
+    }
+  }
+}
+
+package "Bibliotecas externas (npm)" as EXT {
+  package "Next.js 16 / React 19" as NEXT {
+  }
+  package "Prisma 7" as PRISMALIB {
+  }
+  package "Zod 4" as ZOD {
+  }
+  package "jose / bcryptjs" as SEG {
+  }
+  package "date-fns" as FECHAS {
+  }
+  package "Recharts / pdf-lib" as REPLIB {
+  }
+}
+
+PUB ..> COMP : <<import>>
+PAN ..> COMP : <<import>>
+CP ..> CA : <<import>>
+CP ..> CD : <<import>>\n(lecturas)
+CA ..> CD : <<import>>
+CP ..> CS : <<import>>
+CA ..> CS : <<import>>
+CD ..> CS : <<import>>
+PRI ..> GEN : <<genera>>
+
+CP ..> NEXT : <<use>>
+REPUI ..> REPLIB : <<use>>
+VAL ..> ZOD : <<use>>
+LIB ..> SEG : <<use>>
+LIB ..> FECHAS : <<use>>
+GEN ..> PRISMALIB : <<use>>
+@enduml
